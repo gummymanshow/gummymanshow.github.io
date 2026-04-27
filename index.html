@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gummy Background</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- Hero Section --- */
+        #hero {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        #hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 15vh; /* Only affects the bottom 15% of the hero */
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                rgba(5, 5, 5, 0.2) 40%, 
+                rgba(5, 5, 5, 0.7) 75%, 
+                var(--bg-color) 100%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        #hero canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+        }
+
+        /* --- Cinematic Characters Section --- */
+        #characters-section {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 30% 50%, rgba(5, 15, 30, 0.4) 0%, transparent 60%);
+            transition: background-image 0.8s ease;
+            overflow: hidden;
+        }
+
+        #characters-section.bg-gummy {
+            background-image: radial-gradient(circle at 30% 50%, rgba(5, 15, 30, 0.4) 0%, transparent 60%); /* Darker blue tone */
+        }
+
+        #characters-section.bg-fear {
+            background-image: radial-gradient(circle at 30% 50%, rgba(25, 5, 30, 0.4) 0%, transparent 60%); /* Darker purple tone */
+        }
+
+        .character-display {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            height: 80vh;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* LEFT SIDE */
+        .character-visual {
+            flex: 1.2;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            height: 100%;
+            position: relative;
+            min-width: 0;
+        }
+
+        .character-visual img {
+            height: 125%; /* Dominant size, 15% larger */
+            max-height: 1000px;
+            width: auto;
+            object-fit: contain;
+            transition: opacity 0.3s ease, filter 0.8s ease;
+            /* Blend into page softly on all edges (top, bottom, left, right) */
+            -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, black 60%, transparent 100%);
+            mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, black 60%, transparent 100%);
+        }
+
+        .character-visual img.glow-gummy {
+            filter: drop-shadow(0 0 80px rgba(255, 20, 20, 0.15));
+        }
+
+        .character-visual img.glow-fear {
+            filter: drop-shadow(0 0 80px rgba(150, 20, 255, 0.15));
+        }
+
+        .character-visual img.switching {
+            opacity: 0;
+        }
+
+        /* RIGHT SIDE */
+        .character-info {
+            flex: 0.8;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 4vw;
+            color: #fff;
+            min-width: 0;
+        }
+
+        #character-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 6rem;
+            font-weight: 900;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: -3px;
+            line-height: 1;
+            opacity: 0.95;
+            transition: opacity 0.5s ease;
+            min-height: 6rem;
+            display: flex;
+            align-items: center;
+        }
+
+        #character-desc {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #a0a0a0;
+            margin: 20px 0 60px 0;
+            max-width: 90%;
+            transition: opacity 0.5s ease 0.1s;
+            min-height: 3.2em; /* Ensure space for 2 lines */
+        }
+
+        /* IDENTITY PANEL SELECTOR */
+        .selector-container {
+            width: 100%;
+            max-width: 600px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            margin-top: 10px;
+            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        }
+
+        .selector-container::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .selector-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .selector-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 50, 50, 0.3);
+            border-radius: 4px;
+        }
+
+        .character-selector {
+            display: flex;
+            gap: 16px;
+            width: max-content;
+            padding: 10px 5%;
+        }
+
+        .identity-panel {
+            position: relative;
+            width: 120px; /* Reduced size */
+            height: 180px; /* Reduced size */
+            flex-shrink: 0;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #080808;
+            /* Removed hard borders */
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            opacity: 0.4; /* Inactive: lower opacity */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            transform: scale(1);
+        }
+
+        .identity-panel img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Full body visible */
+            object-position: center; /* Center the character */
+            transform: scale(0.85); /* Balanced spacing above head and below feet */
+            filter: brightness(0.4); /* Inactive: darker, less contrast */
+            transition: all 0.4s ease;
+            z-index: 0;
+        }
+
+        .identity-panel .panel-name {
+            position: relative;
+            z-index: 1;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 20px 0 10px 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 10%, transparent 100%);
+            width: 100%;
+            color: #888;
+            transition: all 0.4s ease;
+            letter-spacing: 1.5px;
+        }
+
+        .identity-panel:hover:not(.locked) {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+
+        .identity-panel.active {
+            opacity: 1;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 25px rgba(255, 40, 40, 0.4); /* Soft red glow */
+            transform: scale(1.08); /* Slightly increase scale */
+        }
+
+        .identity-panel.active img {
+            filter: brightness(1.1) contrast(1.1); /* Brighter */
+        }
+
+        .identity-panel.active .panel-name {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 50, 50, 0.5);
+        }
+
+        /* LOCKED STATE */
+        .identity-panel.locked {
+            cursor: not-allowed;
+            border-style: dashed;
+            border-color: #222;
+        }
+
+        .identity-panel.locked img {
+            filter: brightness(0.2) blur(5px) grayscale(1);
+        }
+
+        .identity-panel.locked .panel-name {
+            color: #555;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 28px;
+            height: 28px;
+            z-index: 2;
+            opacity: 0.4;
+            color: #fff;
+        }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 768px) {
+            #characters-section {
+                padding: 60px 0;
+                align-items: flex-start;
+            }
+
+            .character-display {
+                flex-direction: column;
+                height: auto;
+                justify-content: flex-start;
+            }
+
+            .character-visual {
+                flex: none;
+                width: 100%;
+                height: 45vh;
+                justify-content: center;
+            }
+
+            .character-visual img {
+                height: 125%;
+                width: auto;
+                max-height: none;
+            }
+
+            .character-info {
+                flex: none;
+                width: 100%;
+                padding-left: 0;
+                align-items: center;
+                text-align: center;
+                margin-top: 20px;
+            }
+
+            #character-name {
+                font-size: 3.5rem;
+                letter-spacing: -1px;
+                min-height: 3.5rem;
+                justify-content: center;
+            }
+
+            #character-desc {
+                font-size: 1rem;
+                margin: 15px auto 30px auto;
+                padding: 0 20px;
+                max-width: 100%;
+                box-sizing: border-box;
+                min-height: 3.2em;
+            }
+
+            .selector-container {
+                display: flex;
+                justify-content: center;
+                margin-top: 0;
+                padding-bottom: 10px;
+                /* Relax mask slightly for mobile */
+                mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+                -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+            }
+
+            .character-selector {
+                padding: 10px;
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .identity-panel {
+                width: 90px;
+                height: 135px;
+            }
+
+            .identity-panel .panel-name {
+                font-size: 0.75rem;
+                padding: 15px 0 8px 0;
+                letter-spacing: 1px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="hero">
+        <!-- Canvas will be appended here by Three.js -->
+    </div>
+
+    <section id="characters-section" class="bg-gummy">
+        <div class="character-display">
+            <!-- Left Side: Large Visual -->
+            <div class="character-visual">
+                <img id="main-character-img" class="glow-gummy" src="./gummy.png" alt="Gummy">
+            </div>
+            
+            <!-- Right Side: Info & Selector -->
+            <div class="character-info">
+                <h2 id="character-name">GUMMY</h2>
+                <p id="character-desc">He’s clearly not prepared for anything… but he tries everything anyway.</p>
+                
+                <div class="selector-container">
+                    <div class="character-selector">
+                        <div class="identity-panel active" data-char="gummy">
+                            <img src="./gummy.png" alt="Gummy Panel">
+                            <div class="panel-name">GUMMY</div>
+                        </div>
+                        <div class="identity-panel" data-char="fear">
+                            <img src="./fear.png" alt="Fear Panel">
+                            <div class="panel-name">FEAR</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Character Database
+        const characters = {
+            gummy: {
+                name: "GUMMY",
+                desc: "He’s clearly not prepared for anything… but he tries everything anyway.",
+                img: "./gummy.png"
+            },
+            fear: {
+                name: "FEAR",
+                desc: "An entity of few words, living with Gummy.",
+                img: "./fear.png"
+            }
+        };
+
+        // Preload character images
+        Object.values(characters).forEach(char => {
+            const img = new Image();
+            img.src = char.img;
+        });
+
+        const thumbs = document.querySelectorAll('.identity-panel');
+        const mainImg = document.getElementById('main-character-img');
+        const nameEl = document.getElementById('character-name');
+        const descEl = document.getElementById('character-desc');
+
+        thumbs.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                if(thumb.classList.contains('active') || thumb.classList.contains('locked')) return;
+                
+                // Update active state
+                thumbs.forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+                
+                const charKey = thumb.dataset.char;
+                const data = characters[charKey];
+                const section = document.getElementById('characters-section');
+                
+                // Animate out
+                mainImg.classList.add('switching');
+                nameEl.style.opacity = '0';
+                descEl.style.opacity = '0';
+                
+                setTimeout(() => {
+                    mainImg.src = data.img;
+                    nameEl.textContent = data.name;
+                    descEl.textContent = data.desc;
+                    
+                    // Switch glows and backgrounds
+                    mainImg.className = `glow-${charKey}`;
+                    section.className = `bg-${charKey}`;
+                    
+                    // Animate in
+                    mainImg.classList.remove('switching');
+                    nameEl.style.opacity = '0.95';
+                    descEl.style.opacity = '1';
+                }, 300); // Wait for fade out
+            });
+        });
+    </script>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+
+        // Setup Scene and Orthographic Camera for 2D Shader
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Ensure absolutely no color conversion or tone mapping
+        renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+        renderer.toneMapping = THREE.NoToneMapping;
+        document.getElementById('hero').appendChild(renderer.domElement);
+
+        // Full screen quad geometry
+        const geometry = new THREE.PlaneGeometry(2, 2);
+
+        const uniforms = {
+            uTexture: { value: null },
+            uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            uImageResolution: { value: new THREE.Vector2(1, 1) },
+            uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+            uStrength: { value: 0.0 },
+            uRadius: { value: 0.25 }, // Small localized radius
+            uTime: { value: 0.0 }
+        };
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D uTexture;
+                uniform vec2 uResolution;
+                uniform vec2 uImageResolution;
+                uniform vec2 uMouse;
+                uniform float uStrength;
+                uniform float uRadius;
+                uniform float uTime;
+
+                varying vec2 vUv;
+
+                // --- Simplex 3D Noise ---
+                vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+                vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+
+                float snoise(vec3 v){ 
+                  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+                  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+                  vec3 i  = floor(v + dot(v, C.yyy) );
+                  vec3 x0 = v - i + dot(i, C.xxx) ;
+
+                  vec3 g = step(x0.yzx, x0.xyz);
+                  vec3 l = 1.0 - g;
+                  vec3 i1 = min( g.xyz, l.zxy );
+                  vec3 i2 = max( g.xyz, l.zxy );
+
+                  vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+                  vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+                  vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
+
+                  i = mod(i, 289.0 ); 
+                  vec4 p = permute( permute( permute( 
+                             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+                           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+                           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+                  float n_ = 1.0/7.0;
+                  vec3  ns = n_ * D.wyz - D.xzx;
+
+                  vec4 j = p - 49.0 * floor(p * ns.z *ns.z);
+
+                  vec4 x_ = floor(j * ns.z);
+                  vec4 y_ = floor(j - 7.0 * x_ );
+
+                  vec4 x = x_ *ns.x + ns.yyyy;
+                  vec4 y = y_ *ns.x + ns.yyyy;
+                  vec4 h = 1.0 - abs(x) - abs(y);
+
+                  vec4 b0 = vec4( x.xy, y.xy );
+                  vec4 b1 = vec4( x.zw, y.zw );
+
+                  vec4 s0 = floor(b0)*2.0 + 1.0;
+                  vec4 s1 = floor(b1)*2.0 + 1.0;
+                  vec4 sh = -step(h, vec4(0.0));
+
+                  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+                  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+                  vec3 p0 = vec3(a0.xy,h.x);
+                  vec3 p1 = vec3(a0.zw,h.y);
+                  vec3 p2 = vec3(a1.xy,h.z);
+                  vec3 p3 = vec3(a1.zw,h.w);
+
+                  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                  p0 *= norm.x;
+                  p1 *= norm.y;
+                  p2 *= norm.z;
+                  p3 *= norm.w;
+
+                  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                  m = m * m;
+                  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
+                                                dot(p2,x2), dot(p3,x3) ) );
+                }
+                // --- End Noise ---
+
+
+
+                void main() {
+                    // 1. Calculate background-size: cover UVs
+                    vec2 ratio = vec2(
+                        min((uResolution.x / uResolution.y) / (uImageResolution.x / uImageResolution.y), 1.0),
+                        min((uResolution.y / uResolution.x) / (uImageResolution.y / uImageResolution.x), 1.0)
+                    );
+                    vec2 uvCover = vec2(
+                        vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
+                        vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
+                    );
+
+                    // 2. Calculate interactive press displacement
+                    vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+                    vec2 screenUv = vUv * aspect;
+                    vec2 mouseUv = uMouse * aspect;
+
+                    float dist = distance(screenUv, mouseUv);
+                    float falloff = smoothstep(uRadius, 0.0, dist);
+                    falloff = pow(falloff, 1.8);
+
+                    vec2 dir = screenUv - mouseUv;
+                    float dirLen = length(dir);
+                    if (dirLen > 0.0) {
+                        dir /= dirLen;
+                    }
+
+                    vec2 uvShift = dir / aspect;
+                    vec2 baseUv = uvCover - uvShift * falloff * uStrength * 0.03;
+
+                    // 3. Read base color to build the stable protection mask
+                    vec3 col = texture2D(uTexture, baseUv).rgb;
+                    
+                    // Protect eyes and background: gummy material is predominantly red
+                    float redDom = col.r - max(col.g, col.b);
+                    float isGummy = smoothstep(0.05, 0.2, redDom);
+                    
+                    // Protect white light reflections: white has very low color saturation
+                    float maxC = max(col.r, max(col.g, col.b));
+                    float minC = min(col.r, min(col.g, col.b));
+                    float sat = (maxC > 0.0) ? (maxC - minC) / maxC : 0.0;
+                    float isRed = smoothstep(0.25, 0.5, sat);
+
+                    // The warp mask is only fully active inside the saturated red gummy body.
+                    // It smoothly drops to 0.0 at the eyes and white highlights.
+                    float warpMask = isGummy * isRed;
+
+                    // 4. Generate smooth, suspended wandering drift
+                    float t = uTime * 0.15; // Smooth wandering speed
+                    
+                    // Low frequency noise (4.0) ensures the entire local area moves uniformly.
+                    // This guarantees zero stretching or smearing of individual bubbles.
+                    vec2 drift = vec2(
+                        snoise(vec3(baseUv * 4.0, t)), 
+                        snoise(vec3(baseUv * 4.0 + 44.0, t))
+                    ) * 0.01; // Tiny bounded displacement (~1% screen)
+
+                    // 5. Modify UV sampling for the final image!
+                    // This perfectly satisfies the "no layers, no overlays, pure original pixels" requirement.
+                    vec2 finalUv = baseUv - drift * warpMask;
+
+                    gl_FragColor = texture2D(uTexture, finalUv);
+                }
+
+            `,
+            depthWrite: false,
+            depthTest: false
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // Load Texture
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load('./gummy-reference.jpeg', (texture) => {
+            // Do not set texture.colorSpace = THREE.SRGBColorSpace to prevent decoding
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            
+            uniforms.uTexture.value = texture;
+            uniforms.uImageResolution.value.set(texture.image.width, texture.image.height);
+        });
+
+        // Resize handler
+        function resize() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', resize);
+
+        // Interaction state
+        let targetMouse = new THREE.Vector2(0.5, 0.5);
+        let currentMouse = new THREE.Vector2(0.5, 0.5);
+        
+        let targetStrength = 0.0;
+        let currentStrength = 0.0;
+        let strengthVelocity = 0.0;
+        
+        let isMouseDown = false;
+        let isHovering = false;
+
+        function updateMouseInfo(e) {
+            targetMouse.x = e.clientX / window.innerWidth;
+            targetMouse.y = 1.0 - (e.clientY / window.innerHeight);
+            isHovering = true;
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            updateMouseInfo(e);
+            targetStrength = isMouseDown ? 1.0 : 0.35; // Subtle press on hover
+        });
+
+        window.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            updateMouseInfo(e);
+            targetStrength = 1.0; // Deeper press on click
+        });
+
+        window.addEventListener('mouseup', () => {
+            isMouseDown = false;
+            targetStrength = isHovering ? 0.35 : 0.0;
+        });
+
+        window.addEventListener('mouseleave', () => {
+            isHovering = false;
+            isMouseDown = false;
+            targetStrength = 0.0;
+        });
+        
+        window.addEventListener('mouseenter', (e) => {
+            updateMouseInfo(e);
+            targetStrength = isMouseDown ? 1.0 : 0.35;
+        });
+
+        const heroEl = document.getElementById('hero');
+
+        heroEl.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                targetMouse.x = touch.clientX / window.innerWidth;
+                targetMouse.y = 1.0 - (touch.clientY / window.innerHeight);
+                isMouseDown = true;
+                targetStrength = 1.0;
+            }
+        }, { passive: true });
+
+        heroEl.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                // Update effect position without blocking scroll
+                targetMouse.x = touch.clientX / window.innerWidth;
+                targetMouse.y = 1.0 - (touch.clientY / window.innerHeight);
+                targetStrength = 1.0;
+            }
+        }, { passive: true });
+
+        heroEl.addEventListener('touchend', () => {
+            isMouseDown = false;
+            targetStrength = 0.0;
+        }, { passive: true });
+
+        heroEl.addEventListener('touchcancel', () => {
+            isMouseDown = false;
+            targetStrength = 0.0;
+        }, { passive: true });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const dt = Math.min(clock.getDelta(), 0.1);
+            uniforms.uTime.value += dt;
+
+            // Smoothly interpolate position (adds a slight heavy drag feel)
+            currentMouse.lerp(targetMouse, 1.0 - Math.exp(-12.0 * dt));
+
+            // Spring for strength (slow return, soft, damped)
+            const stiffness = 20.0;
+            const damping = 7.0; 
+            const force = (targetStrength - currentStrength) * stiffness - strengthVelocity * damping;
+            strengthVelocity += force * dt;
+            currentStrength += strengthVelocity * dt;
+
+            // Apply to shader
+            uniforms.uMouse.value.copy(currentMouse);
+            uniforms.uStrength.value = currentStrength;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
